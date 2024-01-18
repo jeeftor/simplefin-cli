@@ -104,13 +104,14 @@ func processAccounts(baseURL string, proxyURL string) error {
 	return nil
 }
 
-var orgColors = map[string]text.Colors{
-	"Citibank":             text.Colors{text.FgBlue},
-	"Fidelity Investments": text.Colors{text.FgGreen},
-	"Hanscom Federal CU":   text.Colors{text.FgRed},
-	"Wealthfront":          text.Colors{text.FgYellow},
-	// Add more organizations and colors as needed
-}
+//
+//var orgColors = map[string]text.Colors{
+//	"Citibank":             text.Colors{text.FgBlue},
+//	"Fidelity Investments": text.Colors{text.FgGreen},
+//	"Hanscom Federal CU":   text.Colors{text.FgRed},
+//	"Wealthfront":          text.Colors{text.FgYellow},
+//	// Add more organizations and colors as needed
+//}
 
 func processErrors(financialData *FinancialData) {
 	for _, errorString := range financialData.Errors {
@@ -125,7 +126,7 @@ func processErrors(financialData *FinancialData) {
 func printFinancialData(financialData FinancialData) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Org Name", "Account Name", "Balance", "Currency"})
+	t.AppendHeader(table.Row{"Bank", "Account Name", "Balance", "Currency"})
 
 	for _, account := range financialData.Accounts {
 		status := ""
@@ -147,6 +148,9 @@ func printFinancialData(financialData FinancialData) {
 		{Name: "Account Name", Mode: table.Asc},
 	})
 
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 3, Align: text.AlignRight},
+	})
 	//t.SetStyle(table.Style{
 	//	Name: "colorful",
 	//	Box:  table.StyleBoxLight,
@@ -170,6 +174,7 @@ func printFinancialData(financialData FinancialData) {
 	// })
 
 	t.SetStyle(table.StyleLight) // This style includes lines between columns
+	//t.SetStyle(table.StyleColoredBright)
 
 	t.Render()
 }

@@ -12,9 +12,24 @@ BIN_DIR=./bin
 # Create output directory if it doesn't exist
 $(shell mkdir -p $(BIN_DIR))
 
+
+# Function to extract version numbers
+extract_version_parts = $(shell echo $(1) | awk -F. '{print $$1,$$2,$$3}')
+
+
+# Function to increment version
+increment_version = $(shell v=($(1)); \
+    if [ $(2) -eq 1 ]; then \
+        echo $$((v[0]+1)).0.0; \
+    elif [ $(2) -eq 2 ]; then \
+        echo $${v[0]}.$$((v[1]+1)).0; \
+    elif [ $(2) -eq 3 ]; then \
+        echo $${v[0]}.$${v[1]}.$$((v[2]+1)); \
+    fi)
+
 .PHONY: build build-all clean
 
-GIT_TAG ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
+GIT_TAG ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME ?= $(shell date +%FT%T%z 2>/dev/null || echo "unknown")
 
@@ -49,9 +64,13 @@ build: build-$(CURRENT_OS)-$(CURRENT_ARCH)
 	@cp $(BIN_DIR)/$(BINARY_NAME)-$(CURRENT_OS)-$(CURRENT_ARCH) $(BIN_DIR)/$(BINARY_NAME)
 
 # Debugging output
+# Debugging output
 debug:
 	@echo "GOARCH: $(CURRENT_ARCH)"
 	@echo "CURRENT_OS: $(CURRENT_OS)"
+	@echo "GIT_TAG: $(GIT_TAG)"
+	@echo "GIT_COMMIT: $(GIT_COMMIT)"
+	@echo "BUILD_TIME: $(BUILD_TIME)"
 
 build-all: build-linux-amd64 build-windows-amd64 build-darwin-amd64 build-linux-arm64 build-darwin-arm64
 
@@ -84,3 +103,26 @@ clean:
 	@echo "Cleaning..."
 	@rm -f $(BIN_DIR)/$(BINARY_NAME)*
 	@echo "Clean complete"
+
+
+release-patch: clean build-all
+	@echo "GIT_TAG: $(GIT_TAG)"
+	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
+	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),3))
+	@echo "New patch release version: v$(NEW_GIT_TAG)"
+	@echo "gh release create v$(NEW_GIT_TAG) ./bin/*"
+
+release-minor: clean build-all
+	@echo "GIT_TAG: $(GIT_TAG)"
+	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
+	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),2))
+	@echo "New minor release version: v$(NEW_GIT_TAG)"
+	@echo "gh release create v$(NEW_GIT_TAG) ./bin/*"
+
+release-major: clean build-all
+	@echo "GIT_TAG: $(GIT_TAG)"
+	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
+	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),1))
+	@echo "New major release version: v$(NEW_GIT_TAG)"
+	@echo "gh release create v$(NEW_GIT_TAG) ./bin/*"
+
