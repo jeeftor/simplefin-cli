@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -123,17 +124,41 @@ func processErrors(financialData *FinancialData) {
 	}
 }
 
+func sortAccountsByOrgNameAndAccountName(accounts []Accounts) []Accounts {
+	// Define a custom sorting function
+	customSort := func(accounts []Accounts, less func(i, j int) bool) {
+		sort.SliceStable(accounts, less)
+	}
+
+	// Sort by Org.Name and then by Name
+	customSort(accounts, func(i, j int) bool {
+		if accounts[i].Org.Name != accounts[j].Org.Name {
+			return accounts[i].Org.Name < accounts[j].Org.Name
+		}
+		return accounts[i].Name < accounts[j].Name
+	})
+
+	return accounts
+}
+
 func printFinancialData(financialData FinancialData) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Bank", "Account Name", "Balance", "Currency"})
 
-	for _, account := range financialData.Accounts {
+	sortedAccounts := sortAccountsByOrgNameAndAccountName(financialData.Accounts)
+	prevOrgName := sortedAccounts[0].Org.Name
+
+	for _, account := range sortedAccounts {
 		status := ""
 		if account.PossibleError {
 			status = "⚠"
 		}
-
+		// Check if the organization name has changed
+		if account.Org.Name != prevOrgName {
+			t.AppendSeparator()
+			prevOrgName = account.Org.Name
+		}
 		t.AppendRow([]interface{}{
 			account.Org.Name,
 			account.Name,
@@ -143,12 +168,8 @@ func printFinancialData(financialData FinancialData) {
 		})
 	}
 
-	t.SortBy([]table.SortBy{
-		{Name: "Org Name", Mode: table.Asc},
-		{Name: "Account Name", Mode: table.Asc},
-	})
-
 	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, AutoMerge: true, Align: text.AlignCenter},
 		{Number: 3, Align: text.AlignRight},
 	})
 	//t.SetStyle(table.Style{
@@ -160,18 +181,7 @@ func printFinancialData(financialData FinancialData) {
 	//	},
 	//})
 
-	// t.SetStyle(table.Style{
-	//     Name: "Custom Style",
-	//     Box: table.StyleBox{
-	//         MiddleHorizontal: "-", // Use '-' for horizontal lines
-	//         MiddleVertical:   "|", // Use '|' for vertical lines
-	//         MiddleSeparator:  "+", // Use '+' for the middle cross-section
-	//     },
-	//     Color: table.ColorOptions{
-	//         Header: text.Colors{text.Bold, text.FgCyan},
-	//         Row:    text.Colors{text.FgHiYellow},
-	//     },
-	// })
+	t.SetStyle(table.Style{})
 
 	t.SetStyle(table.StyleLight) // This style includes lines between columns
 	//t.SetStyle(table.StyleColoredBright)
