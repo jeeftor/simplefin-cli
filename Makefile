@@ -109,6 +109,7 @@ clean:
 
 
 release-patch: clean build-all
+	@git fetch --tags
 	@echo "GIT_TAG: $(GIT_TAG)"
 	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
 	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),3))
@@ -116,6 +117,7 @@ release-patch: clean build-all
 	@echo "gh release create v$(NEW_GIT_TAG) ./bin/*"
 
 release-minor: clean build-all
+	@git fetch --tags
 	@echo "GIT_TAG: $(GIT_TAG)"
 	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
 	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),2))
@@ -123,6 +125,7 @@ release-minor: clean build-all
 	@echo "gh release create v$(NEW_GIT_TAG) ./bin/*"
 
 release-major: clean build-all
+	@git fetch --tags
 	@echo "GIT_TAG: $(GIT_TAG)"
 	$(eval MAJOR_MINOR_PATCH = $(call extract_version_parts,$(GIT_TAG:v%=%)))
 	$(eval NEW_GIT_TAG = $(call increment_version,$(MAJOR_MINOR_PATCH),1))
