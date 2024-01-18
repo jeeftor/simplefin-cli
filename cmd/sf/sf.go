@@ -37,6 +37,11 @@ func main() {
 				Usage:   "Set the proxy URL",
 				EnvVars: []string{"SF_PROXY"},
 			},
+			&cli.StringFlag{
+				Name:    "out",
+				Usage:   "Output filename for JSON results",
+				EnvVars: []string{"SF_OUT"},
+			},
 		},
 		Commands: []*cli.Command{
 			{
@@ -51,7 +56,8 @@ func main() {
 		Action: func(c *cli.Context) error {
 			baseURL := c.String("url")
 			proxyURL := c.String("proxy")
-			err := processAccounts(baseURL, proxyURL)
+			outFilename := c.String("out")
+			err := processAccounts(baseURL, proxyURL, outFilename)
 			if err != nil {
 				return err
 			}
@@ -65,7 +71,7 @@ func main() {
 	}
 }
 
-func processAccounts(baseURL string, proxyURL string) error {
+func processAccounts(baseURL string, proxyURL string, outFilename string) error {
 	accountsURL := baseURL + "/accounts"
 
 	client := &http.Client{}
@@ -101,19 +107,39 @@ func processAccounts(baseURL string, proxyURL string) error {
 	//fmt.Printf("Received financial data: %+v\n", financialData)
 	processErrors(&financialData)
 
+	if outFilename != "" {
+		// Write the JSON results to the specified file
+		err := writeJSONToFile(financialData, outFilename)
+		if err != nil {
+			return err
+		}
+	}
+
 	printFinancialData(financialData)
 	return nil
 }
 
-//
-//var orgColors = map[string]text.Colors{
-//	"Citibank":             text.Colors{text.FgBlue},
-//	"Fidelity Investments": text.Colors{text.FgGreen},
-//	"Hanscom Federal CU":   text.Colors{text.FgRed},
-//	"Wealthfront":          text.Colors{text.FgYellow},
-//	// Add more organizations and colors as needed
-//}
+//	var orgColors = map[string]text.Colors{
+//		"Citibank":             text.Colors{text.FgBlue},
+//		"Fidelity Investments": text.Colors{text.FgGreen},
+//		"Hanscom Federal CU":   text.Colors{text.FgRed},
+//		"Wealthfront":          text.Colors{text.FgYellow},
+//		// Add more organizations and colors as needed
+//	}
+func writeJSONToFile(data FinancialData, filename string) error {
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return err
+	}
 
+	err = ioutil.WriteFile(filename, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("JSON results written to: %s\n", filename)
+	return nil
+}
 func processErrors(financialData *FinancialData) {
 	for _, errorString := range financialData.Errors {
 		for i, account := range financialData.Accounts {
