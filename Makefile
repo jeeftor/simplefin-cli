@@ -74,6 +74,9 @@ debug:
 
 build-all: build-linux-amd64 build-windows-amd64 build-darwin-amd64 build-linux-arm64 build-darwin-arm64
 
+test:
+	go test ./cmd/sf
+
 build-linux-amd64:
 	@echo "Building for Linux AMD64..."
 	@GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(GIT_TAG) -X main.commit=$(GIT_COMMIT) -X main.buildTime=$(BUILD_TIME)" -o $(BIN_DIR)/$(BINARY_NAME)-linux-amd64 $(SRC_DIR)

@@ -181,7 +181,7 @@ func printFinancialData(financialData FinancialData) {
 	//	},
 	//})
 
-	t.SetStyle(table.Style{})
+	//t.SetStyle(table.Style{})
 
 	t.SetStyle(table.StyleLight) // This style includes lines between columns
 	//t.SetStyle(table.StyleColoredBright)
