@@ -6,7 +6,7 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
 
-version: 1
+version: 2
 
 before:
   hooks:
@@ -52,3 +52,22 @@ release:
   draft: true
   replace_existing_draft: true
   prerelease: auto
+
+
+dockers:
+  - image_templates:
+      - "jeeftor/simplefin:latest"
+      - "jeeftor/simplefin:{{ .Tag }}"
+      - "jeeftor/simplefin:{{ .Tag }}-{{ .Env.FOOBAR }}"
+      - "jeeftor/simplefin:v{{ .Major }}"
+      - "gcr.io/jeeftor/simplefin:latest"
+    skip_push: false
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--build-arg=FOO={{.Env.Bar}}"
+      - "--platform=linux/amd64,linux/arm64"
