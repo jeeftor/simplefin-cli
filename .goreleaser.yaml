@@ -8,6 +8,8 @@
 
 version: 2
 
+project_name: simplefin-cli
+
 before:
   hooks:
     # You may remove this if you don't use go modules.
@@ -23,6 +25,9 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64      
 
 archives:
   - format: tar.gz
@@ -45,9 +50,6 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
-
-
-
 release:
   draft: true
   replace_existing_draft: true
@@ -55,18 +57,97 @@ release:
 
 
 dockers:
-  - image_templates:
-      - "jeeftor/simplefin:latest"
-      - "jeeftor/simplefin:{{ .Tag }}"
-      # - "jeeftor/simplefin:{{ .Tag }}-{{ .Env.FOOBAR }}"
-      - "jeeftor/simplefin:v{{ .Major }}"
-      - "gcr.io/jeeftor/simplefin:latest"
-    skip_push: false
-    use: buildx
-    build_flag_templates:
-      - "--platform linux/amd64,linux/arm64"
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
+- image_templates: 
+    - ghcr.io/jeeftor/simplefin-cli:{{ .Tag }}-amd64
+    # - jeeftor/simplefin-cli:{{ .Tag }}-amd64
+  dockerfile: Dockerfile
+  use: buildx
+  build_flag_templates:
+  - --label=org.opencontainers.image.title={{ .ProjectName }}
+  - --label=org.opencontainers.image.description={{ .ProjectName }}
+  - --label=org.opencontainers.image.url=https://github.com/goreleaser/example
+  - --label=org.opencontainers.image.source=https://github.com/goreleaser/example
+  - --label=org.opencontainers.image.version={{ .Version }}
+  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+  - --label=org.opencontainers.image.revision={{ .FullCommit }}
+  - --label=org.opencontainers.image.licenses=MIT
+  - --pull
+  - --platform=linux/amd64
+
+- image_templates: 
+    - ghcr.io/jeeftor/simplefin-cli:{{ .Tag }}-arm64
+    # - jeeftor/simplefin-cli:{{ .Tag }}-arm64
+  dockerfile: Dockerfile
+  use: buildx
+  build_flag_templates:
+  - --label=org.opencontainers.image.title={{ .ProjectName }}
+  - --label=org.opencontainers.image.description={{ .ProjectName }}
+  - --label=org.opencontainers.image.url=https://github.com/goreleaser/example
+  - --label=org.opencontainers.image.source=https://github.com/goreleaser/example
+  - --label=org.opencontainers.image.version={{ .Version }}
+  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+  - --label=org.opencontainers.image.revision={{ .FullCommit }}
+  - --label=org.opencontainers.image.licenses=MIT
+  - --pull
+  - --platform=linux/arm64
+
+
+
+docker_manifests:
+  # You can have multiple Docker manifests.
+  - # ID of the manifest, needed if you want to filter by it later on (e.g. on
+    # custom publishers).
+    # id: simplefin-cli
+
+    # Name for the manifest.
+    #
+    # Templates: allowed.
+    name_template: "ghcr.io/jeeftor/smiplefin-cli:{{ .Tag }}"
+
+    # Image name to be added to this manifest.
+    #
+    # Templates: allowed.
+    image_templates:
+      - "ghcr.io/jeeftor/smiplefin-cli:{{ .Tag }}-amd64"
+      - "ghcr.io/jeeftor/smiplefin-cli:{{ .Tag }}-arm64"
+
+
+
+
+
+# # .goreleaser.yaml
+# dockers:
+#   - image_templates:
+#       - "jeeftor/simplefin:{{ .Tag }}-amd64"
+#     use: buildx
+#     build_flag_templates:
+#       - "--pull"
+#       - "--platform=linux/amd64"
+
+
+
+      
+#   - image_templates:
+#       - "jeeftor/simplefin:{{ .Tag }}-arm64"
+#     use: buildx
+#     build_flag_templates:
+#       - "--pull"
+#       - "--platform=linux/arm64"
+#     goarch: arm64
+
+
+  # - use: buildx    
+  # - image_templates:
+  #     - "jeeftor/simplefin:latest"
+  #     - "jeeftor/simplefin:{{ .Tag }}"
+  #     # - "jeeftor/simplefin:{{ .Tag }}-{{ .Env.FOOBAR }}"
+  #     - "jeeftor/simplefin:v{{ .Major }}"
+  #     - "gcr.io/jeeftor/simplefin:latest"
+  #   skip_push: false
+  #   use: buildx
+  #   build_flag_templates:
+  #     - "--pull"
+  #     # - "--label=org.opencontainers.image.created={{.Date}}"
+  #     # - "--label=org.opencontainers.image.title={{.ProjectName}}"
+  #     # - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  #     # - "--label=org.opencontainers.image.version={{.Version}}"

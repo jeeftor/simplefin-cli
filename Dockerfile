@@ -1,4 +1,3 @@
-# Dockerfile
 FROM scratch
-COPY ./dist/{{ .Os }}_{{ .Arch }}/simplefin-cli /mybin
-ENTRYPOINT ["/mybin"]
+COPY simplefin-cli /usr/bin/sfcli
+ENTRYPOINT ["/usr/bin/sfcli"]
